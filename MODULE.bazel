@@ -12,7 +12,15 @@ module(
 # Bzlmod follows MVS:
 # https://bazel.build/versions/6.0.0/build/bzlmod#version-resolution
 # Thus the highest version in their module graph is resolved.
-bazel_dep(name = "abseil-cpp", version = "20240722.0", repo_name = "com_google_absl")
+bazel_dep(name = "abseil-cpp", version = "20240722.0")
+
+# TODO: Test against RC not in BCR. Update bazel_dep to 20250127 once released.
+git_override(
+    module_name = "abseil-cpp",
+    commit = "98ebd7e1292d3064ea68105368ee3c334ded63d0",
+    remote = "https://github.com/abseil/abseil-cpp.git",  #20250127.rc1
+)
+
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "jsoncpp", version = "1.9.6")
 bazel_dep(name = "apple_support", version = "1.15.1", repo_name = "build_bazel_apple_support")
@@ -109,7 +117,7 @@ maven.install(
 use_repo(maven, "protobuf_maven")
 
 # Development dependencies
-bazel_dep(name = "googletest", version = "1.14.0", dev_dependency = True, repo_name = "com_google_googletest")
+bazel_dep(name = "googletest", version = "1.14.0", dev_dependency = True)
 bazel_dep(name = "rules_buf", version = "0.3.0", dev_dependency = True)
 bazel_dep(name = "rules_testing", version = "0.6.0", dev_dependency = True)
 bazel_dep(

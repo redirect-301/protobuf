@@ -39,15 +39,15 @@ py_repositories()
 # Bazel platform rules.
 http_archive(
     name = "platforms",
-    sha256 = "3a561c99e7bdbe9173aa653fd579fe849f1d8d67395780ab4770b1f381431d51",
+    sha256 = "8150406605389ececb6da07cbcb509d5637a3ab9a24bc69b1101531367d89d74",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.8/platforms-0.0.8.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.8/platforms-0.0.8.tar.gz",
     ],
 )
 
 http_archive(
-    name = "com_google_googletest",
+    name = "googletest",
     sha256 = "7315acb6bf10e99f332c8a43f00d5fbb1ee6ca48c52f6b936991b216c586aaad",
     strip_prefix = "googletest-1.15.0",
     urls = [
@@ -55,7 +55,7 @@ http_archive(
     ],
 )
 
-load("@com_google_googletest//:googletest_deps.bzl", "googletest_deps")
+load("@googletest//:googletest_deps.bzl", "googletest_deps")
 
 googletest_deps()
 

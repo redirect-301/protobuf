@@ -93,6 +93,9 @@ class ModuleFileFunctions(object):
   def use_extension(self, *args, **kwargs):
     return ExtensionFunctions()
 
+  def git_override(self, *args, **kwargs):
+    pass
+
 
 class Converter(object):
 
