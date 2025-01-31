@@ -3,6 +3,21 @@ use protobuf::prelude::*;
 use unittest_rust_proto::{NestedTestAllTypes, TestAllTypes};
 
 #[gtest]
+fn copy_from() {
+    let mut dst = TestAllTypes::new();
+    let mut src = TestAllTypes::new();
+    dst.copy_from(src.as_view());
+    assert_that!(dst.has_optional_int32(), eq(false));
+
+    src.set_optional_int32(42);
+    assert_that!(src.has_optional_int32(), eq(true));
+    assert_that!(dst.has_optional_int32(), eq(false)); // Not aliased.
+
+    dst.copy_from(src);
+    assert_that!(dst.as_view().has_optional_int32(), eq(true));
+}
+
+#[gtest]
 fn merge_from_empty() {
     let mut dst = TestAllTypes::new();
     let src = TestAllTypes::new();

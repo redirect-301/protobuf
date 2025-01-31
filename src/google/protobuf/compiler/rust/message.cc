@@ -300,11 +300,23 @@ void UpbGeneratedMessageTraitImpls(Context& ctx, const Descriptor& msg) {
   }
 }
 
-void MessageMutMergeFrom(Context& ctx, const Descriptor& msg) {
+void MessageMutAssignCopyMergeFrom(Context& ctx, const Descriptor& msg) {
   switch (ctx.opts().kernel) {
     case Kernel::kCpp:
-      ctx.Emit({},
-               R"rs(
+      ctx.Emit(R"rs(
+          impl $pb$::AssignFrom for $Msg$Mut<'_> {
+            fn assign_from(&mut self, src: $Msg$) {
+              //~ This copy will be optimized in a followup.
+              $pb$::CopyFrom::copy_from(self, $pb$::AsView::as_view(&src));
+            }
+          }
+
+          impl $pb$::CopyFrom for $Msg$Mut<'_> {
+            fn copy_from(&mut self, src: impl $pb$::AsView<Proxied = Self::Proxied>) {
+              unsafe { $pbr$::proto2_rust_Message_copy_from(self.raw_msg(), src.as_view().raw_msg()) };
+            }
+          }
+
           impl $pb$::MergeFrom for $Msg$Mut<'_> {
             fn merge_from(&mut self, src: impl $pb$::AsView<Proxied = $Msg$>) {
               // SAFETY: self and src are both valid `$Msg$`s.
@@ -318,6 +330,29 @@ void MessageMutMergeFrom(Context& ctx, const Descriptor& msg) {
     case Kernel::kUpb:
       ctx.Emit(
           R"rs(
+          impl $pb$::AssignFrom for $Msg$Mut<'_> {
+            fn assign_from(&mut self, src: $Msg$) {
+              //~ This copy will be optimized in a followup.
+              $pb$::CopyFrom::copy_from(self, $pb$::AsView::as_view(&src));
+            }
+          }
+
+          impl $pb$::CopyFrom for $Msg$Mut<'_> {
+            fn copy_from(&mut self, src: impl $pb$::AsView<Proxied = Self::Proxied>) {
+              // SAFETY: self and src are both valid `$Msg$`s associated with
+              // `Self::mini_table()`.
+              unsafe {
+                assert!(
+                  $pbr$::upb_Message_DeepCopy(
+                    self.raw_msg(),
+                    src.as_view().raw_msg(),
+                    <Self as $pbr$::AssociatedMiniTable>::mini_table(),
+                    self.arena().raw())
+                );
+              }
+            }
+          }
+
           impl $pb$::MergeFrom for $Msg$Mut<'_> {
             fn merge_from(&mut self, src: impl $pb$::AsView<Proxied = $Msg$>) {
               // SAFETY: self and src are both valid `$Msg$`s.
@@ -626,7 +661,8 @@ void GenerateRs(Context& ctx, const Descriptor& msg) {
           {"Msg::clear_and_parse", [&] { MessageClearAndParse(ctx, msg); }},
           {"Msg::drop", [&] { MessageDrop(ctx, msg); }},
           {"Msg::debug", [&] { MessageDebug(ctx, msg); }},
-          {"MsgMut::merge_from", [&] { MessageMutMergeFrom(ctx, msg); }},
+          {"MsgMut::assign_copy_merge_from",
+           [&] { MessageMutAssignCopyMergeFrom(ctx, msg); }},
           {"default_instance_impl",
            [&] { GenerateDefaultInstanceImpl(ctx, msg); }},
           {"accessor_fns",
@@ -757,6 +793,20 @@ void GenerateRs(Context& ctx, const Descriptor& msg) {
         impl $std$::fmt::Debug for $Msg$ {
           fn fmt(&self, f: &mut $std$::fmt::Formatter<'_>) -> $std$::fmt::Result {
             $Msg::debug$
+          }
+        }
+
+        impl $pb$::AssignFrom for $Msg$ {
+          fn assign_from<'src>(&mut self, src: Self) {
+            let mut m = self.as_mut();
+            $pb$::AssignFrom::assign_from(&mut m, src)
+          }
+        }
+
+        impl $pb$::CopyFrom for $Msg$ {
+          fn copy_from<'src>(&mut self, src: impl $pb$::AsView<Proxied = Self>) {
+            let mut m = self.as_mut();
+            $pb$::CopyFrom::copy_from(&mut m, src)
           }
         }
 
@@ -917,7 +967,7 @@ void GenerateRs(Context& ctx, const Descriptor& msg) {
           }
         }
 
-        $MsgMut::merge_from$
+        $MsgMut::assign_copy_merge_from$
 
         #[allow(dead_code)]
         impl<'msg> $Msg$Mut<'msg> {
