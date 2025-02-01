@@ -349,6 +349,12 @@ bool SimpleDescriptorDatabase::FindFileByName(const std::string& filename,
   return MaybeCopy(index_.FindFile(filename), output);
 }
 
+bool SimpleDescriptorDatabase::FindFileByName(absl::string_view filename,
+                                              FileDescriptorProto* output) {
+  return SimpleDescriptorDatabase::FindFileByName(std::string(filename),
+                                                  output);
+}
+
 bool SimpleDescriptorDatabase::FindFileContainingSymbol(
     const std::string& symbol_name, FileDescriptorProto* output) {
   return MaybeCopy(index_.FindSymbol(symbol_name), output);
@@ -566,6 +572,11 @@ bool EncodedDescriptorDatabase::AddCopy(const void* encoded_file_descriptor,
 bool EncodedDescriptorDatabase::FindFileByName(const std::string& filename,
                                                FileDescriptorProto* output) {
   return MaybeParse(index_->FindFile(filename), output);
+}
+bool EncodedDescriptorDatabase::FindFileByName(absl::string_view filename,
+                                               FileDescriptorProto* output) {
+  return EncodedDescriptorDatabase::FindFileByName(std::string(filename),
+                                                   output);
 }
 
 bool EncodedDescriptorDatabase::FindFileContainingSymbol(
@@ -899,6 +910,10 @@ bool DescriptorPoolDatabase::FindFileByName(const std::string& filename,
   }
   return true;
 }
+bool DescriptorPoolDatabase::FindFileByName(absl::string_view filename,
+                                            FileDescriptorProto* output) {
+  return DescriptorPoolDatabase::FindFileByName(std::string(filename), output);
+}
 
 bool DescriptorPoolDatabase::FindFileContainingSymbol(
     const std::string& symbol_name, FileDescriptorProto* output) {
@@ -965,6 +980,11 @@ bool MergedDescriptorDatabase::FindFileByName(const std::string& filename,
     }
   }
   return false;
+}
+bool MergedDescriptorDatabase::FindFileByName(absl::string_view filename,
+                                              FileDescriptorProto* output) {
+  return MergedDescriptorDatabase::FindFileByName(std::string(filename),
+                                                  output);
 }
 
 bool MergedDescriptorDatabase::FindFileContainingSymbol(
